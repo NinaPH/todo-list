@@ -3,85 +3,188 @@
 // 2) remove elements
 // 3) mark elements as done
 
+// localStorage.removeItem("tasks");
+
 //referencer til html-elementer
 const addTaskField = document.querySelector(".add-task-field");
 const addTaskBtn = document.querySelector(".add-task-btn");
 const taskList = document.querySelector(".task-list");
 
+let tasksArray = [];
+
+function loadTasks() {
+  const savedTasks = JSON.parse(localStorage.getItem("tasks"));
+  if (!savedTasks) return;
+
+  savedTasks.forEach((taskObj) => {
+    if (!taskObj) return;
+    let task = document.createElement("li");
+    task.id = "task";
+    task.draggable = "true";
+
+    let taskText = document.createElement("span");
+    taskText.textContent = taskObj.text;
+    taskText.classList.add("task-text");
+    if (taskObj.done) {
+      taskText.classList.add("finished");
+      taskText.innerHTML = `<s>${taskObj.text}</s>`;
+    } else {
+      taskText.classList.add("unfinished");
+    }
+
+    let markAsDone = document.createElement("input");
+    markAsDone.type = "checkbox";
+    markAsDone.checked = taskObj.done;
+    markAsDone.dataset.id = taskObj.id;
+
+    markAsDone.addEventListener("change", () => {
+      if (markAsDone.checked) {
+        taskText.innerHTML = `<s>${taskObj.text}</s>`;
+        taskText.classList.remove("unfinished");
+        taskText.classList.add("finished");
+        taskObj.done = true;
+      } else {
+        taskText.innerHTML = taskObj.text;
+        taskText.classList.remove("finished");
+        taskText.classList.add("unfinished");
+        taskObj.done = false;
+      }
+    });
+
+    let deleteBtn = document.createElement("button");
+    deleteBtn.classList.add("delete-btn", "fa", "fa-trash");
+    deleteBtn.addEventListener("click", () => {
+      task.remove();
+      tasksArray = tasksArray.filter((t) => t.id !== taskObj.id);
+      saveTasks();
+    });
+
+    task.appendChild(markAsDone);
+    task.appendChild(taskText);
+    task.appendChild(deleteBtn);
+    taskList.appendChild(task);
+
+    task.addEventListener("dragstart", (e) => {
+      setTimeout(() => {
+        task.classList.add("dragging");
+        task.style.opacity = 0.3;
+        e.dataTransfer.setDragImage(task, 0, 0);
+      }, 0);
+    });
+    task.addEventListener("dragend", () => {
+      task.classList.remove("dragging");
+      task.style.opacity = 1;
+
+      // opdater rækkefølgen i arrayet
+      const newOrder = [...taskList.querySelectorAll("li")].map((li) =>
+        tasksArray.find(
+          (t) => t.id === Number(li.querySelector("input").dataset.id)
+        )
+      );
+      tasksArray = newOrder;
+    });
+    tasksArray.push(taskObj);
+  });
+}
+
 // funktion der står for at lave en task
 function createTask() {
-  {
-    // gem input i variabel
-    let userInput = addTaskField.value;
-    if (userInput) {
-      // task er det overordnede li-element
-      let task = document.createElement("li");
-      task.id = "task";
-      // gør elementet flytbart med musen
-      task.draggable = "true";
+  // gem input i variabel
+  let userInput = addTaskField.value;
+  if (userInput) {
+    // task er det overordnede li-element
+    let task = document.createElement("li");
+    task.id = "task";
+    // gør elementet flytbart med musen
+    task.draggable = "true";
 
-      // en span indeni li-elementet der refererer til task teksten
-      let taskText = document.createElement("span");
-      taskText.textContent = userInput;
-      taskText.classList.add("task-text");
+    // en span indeni li-elementet der refererer til task teksten
+    let taskText = document.createElement("span");
+    taskText.textContent = userInput;
+    taskText.classList.add("task-text");
 
-      // slet knap
-      let deleteBtn = document.createElement("button");
-      deleteBtn.classList.add("delete-btn");
-      deleteBtn.classList.add("fa", "fa-trash");
-      deleteBtn.addEventListener("click", () => {
-        task.remove();
+    // slet knap
+    let deleteBtn = document.createElement("button");
+    deleteBtn.classList.add("delete-btn");
+    deleteBtn.classList.add("fa", "fa-trash");
+    deleteBtn.addEventListener("click", () => {
+      task.remove();
+      tasksArray = tasksArray.filter((t) => t.id !== taskObj.id); // fjern fra arrayet
+      saveTasks();
+    });
+
+    let taskObj = {
+      text: taskText.textContent,
+      done: taskText.classList.contains("finished") ? true : false,
+      id: Date.now(),
+    };
+
+    // markér som fuldført knap
+    let markAsDone = document.createElement("input");
+    markAsDone.type = "checkbox";
+    markAsDone.dataset.id = taskObj.id;
+
+    // event listener til når checkboxens status ændres (checked/unchecked)
+    markAsDone.addEventListener("change", () => {
+      let id = Number(markAsDone.dataset.id);
+      let task = tasksArray.find((t) => t.id === id);
+      if (markAsDone.checked) {
+        // tilføj streg igennem teksten
+        taskText.innerHTML = `<s>${userInput}</s>`;
+        taskText.classList.remove("unfinished");
+        taskText.classList.add("finished");
+        task.done = true;
+        saveTasks();
+      } else {
+        // fjern streg igennem teksten
+        taskText.innerHTML = userInput;
+        taskText.classList.remove("finished");
+        taskText.classList.add("unfinished");
+        task.done = false;
+        saveTasks();
+      }
+    });
+
+    // append underelementerne til "task", og append "task" til "taskList"
+    task.appendChild(markAsDone);
+    task.appendChild(taskText);
+    task.appendChild(deleteBtn);
+    taskList.appendChild(task);
+    // tøm feltet i interfacet
+    addTaskField.value = "";
+
+    // event listener der udføres lige når man begynder at dragge elementet
+    task.addEventListener("dragstart", (e) => {
+      //setTimeout forsinker koden en smule
+      setTimeout(() => {
+        //tilføj dragging class for styling + identifikation
+        task.classList.add("dragging");
+        // tilføj midlrtidig opacity styling
+        task.style.opacity = 0.3;
+        // giver browseren et billede af selve tasken, der følger musen under drag. Offset er 0,0
+        e.dataTransfer.setDragImage(task, 0, 0);
+      }, 0);
+    });
+
+    // sker når man slipper musen og stopper med at dragge
+    task.addEventListener("dragend", () => {
+      // fjerne dragging class og resette opacity
+      task.classList.remove("dragging");
+      task.style.opacity = 1;
+
+      const newOrder = [...taskList.querySelectorAll("li")].map((li) => {
+        return tasksArray.find(
+          (task) => task.id === Number(li.querySelector("input").dataset.id)
+        );
       });
+      tasksArray = newOrder;
+      saveTasks();
+    });
 
-      // markér som fuldført knap
-      let markAsDone = document.createElement("input");
-      markAsDone.type = "checkbox";
-
-      // event listener til når checkboxens status ændres (checked/unchecked)
-      markAsDone.addEventListener("change", () => {
-        if (markAsDone.checked == true) {
-          // tilføj streg igennem teksten
-          taskText.innerHTML = `<s>${userInput}</s>`;
-          taskText.classList.remove("unfinished");
-          taskText.classList.add("finished");
-        } else {
-          // fjern streg igennem teksten
-          taskText.innerHTML = userInput;
-          taskText.classList.remove("finished");
-          taskText.classList.add("unfinished");
-        }
-      });
-
-      // append underelementerne til "task", og append "task" til "taskList"
-      task.appendChild(markAsDone);
-      task.appendChild(taskText);
-      task.appendChild(deleteBtn);
-      taskList.appendChild(task);
-      // tøm feltet i interfacet
-      addTaskField.value = "";
-
-      // event listener der udføres lige når man begynder at dragge elementet
-      task.addEventListener("dragstart", (e) => {
-        //setTimeout forsinker koden en smule
-        setTimeout(() => {
-          //tilføj dragging class for styling + identifikation
-          task.classList.add("dragging");
-          // tilføj midlrtidig opacity styling
-          task.style.opacity = 0.3;
-          // giver browseren et billede af selve tasken, der følger musen under drag. Offset er 0,0
-          e.dataTransfer.setDragImage(task, 0, 0);
-        }, 0);
-      });
-
-      // sker når man slipper musen og stopper med at dragge
-      task.addEventListener("dragend", () => {
-        // fjerne dragging class og resette opacity
-        task.classList.remove("dragging");
-        task.style.opacity = 1;
-      });
-    } else {
-      alert("Please input a value");
-    }
+    tasksArray.push(taskObj);
+    saveTasks();
+  } else {
+    alert("Please input a value");
   }
 }
 
@@ -106,6 +209,12 @@ function initSortableList(e) {
     taskList.appendChild(draggingItem);
   }
 }
+
+function saveTasks() {
+  localStorage.setItem("tasks", JSON.stringify(tasksArray));
+}
+
+loadTasks();
 
 // event listeners når "tilføj"-knappen klikkes eller der trykkes enter
 addTaskBtn.addEventListener("click", createTask);
