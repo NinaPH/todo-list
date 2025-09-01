@@ -10,12 +10,16 @@ const addTaskField = document.querySelector(".add-task-field");
 const addTaskBtn = document.querySelector(".add-task-btn");
 const taskList = document.querySelector(".task-list");
 
+//array som bliver fyldt med de objekter, der repræsenterer tasks
 let tasksArray = [];
 
 function loadTasks() {
+  // hent tasks fra JSON-fil og konvertér dem om til data/et objekt
   const savedTasks = JSON.parse(localStorage.getItem("tasks"));
+  //afslut funktionen hvis arrayet er tomt
   if (!savedTasks) return;
 
+  //for hver entry i savedTasks, byg alle <li>-elementerne ud fra objektet
   savedTasks.forEach((taskObj) => {
     if (!taskObj) return;
     let task = document.createElement("li");
@@ -87,6 +91,10 @@ function loadTasks() {
     });
     tasksArray.push(taskObj);
   });
+}
+
+function saveTasks() {
+  localStorage.setItem("tasks", JSON.stringify(tasksArray));
 }
 
 // funktion der står for at lave en task
@@ -210,10 +218,6 @@ function initSortableList(e) {
     // hvis ikke, betyder det, at vi trækker det nederst, så vi tilføjer det til slutningen {
     taskList.appendChild(draggingItem);
   }
-}
-
-function saveTasks() {
-  localStorage.setItem("tasks", JSON.stringify(tasksArray));
 }
 
 loadTasks();
