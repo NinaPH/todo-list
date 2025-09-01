@@ -49,6 +49,7 @@ function loadTasks() {
         taskText.classList.add("unfinished");
         taskObj.done = false;
       }
+      saveTasks();
     });
 
     let deleteBtn = document.createElement("button");
@@ -82,6 +83,7 @@ function loadTasks() {
         )
       );
       tasksArray = newOrder;
+      saveTasks();
     });
     tasksArray.push(taskObj);
   });
@@ -103,6 +105,12 @@ function createTask() {
     taskText.textContent = userInput;
     taskText.classList.add("task-text");
 
+    let taskObj = {
+      text: taskText.textContent,
+      done: taskText.classList.contains("finished") ? true : false,
+      id: Date.now(),
+    };
+
     // slet knap
     let deleteBtn = document.createElement("button");
     deleteBtn.classList.add("delete-btn");
@@ -112,12 +120,6 @@ function createTask() {
       tasksArray = tasksArray.filter((t) => t.id !== taskObj.id); // fjern fra arrayet
       saveTasks();
     });
-
-    let taskObj = {
-      text: taskText.textContent,
-      done: taskText.classList.contains("finished") ? true : false,
-      id: Date.now(),
-    };
 
     // markér som fuldført knap
     let markAsDone = document.createElement("input");
