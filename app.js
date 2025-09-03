@@ -13,6 +13,8 @@ const taskList = document.querySelector(".task-list");
 //array som bliver fyldt med de objekter, der repræsenterer tasks
 let tasksArray = [];
 
+let colors = ["#F3F1F4"];
+
 function loadTasks() {
   // hent tasks fra JSON-fil og konvertér dem om til data/et objekt
   const savedTasks = JSON.parse(localStorage.getItem("tasks"));
@@ -26,6 +28,9 @@ function loadTasks() {
     task.id = "task";
     task.draggable = "true";
 
+    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+    task.style.backgroundColor = randomColor;
+
     let taskText = document.createElement("span");
     taskText.textContent = taskObj.text;
     taskText.classList.add("task-text");
@@ -38,6 +43,7 @@ function loadTasks() {
 
     let markAsDone = document.createElement("input");
     markAsDone.type = "checkbox";
+    markAsDone.classList.add("checkbox");
     markAsDone.checked = taskObj.done;
     markAsDone.dataset.id = taskObj.id;
 
@@ -72,13 +78,11 @@ function loadTasks() {
     task.addEventListener("dragstart", (e) => {
       setTimeout(() => {
         task.classList.add("dragging");
-        task.style.opacity = 0.3;
         e.dataTransfer.setDragImage(task, 0, 0);
       }, 0);
     });
     task.addEventListener("dragend", () => {
       task.classList.remove("dragging");
-      task.style.opacity = 1;
 
       // opdater rækkefølgen i arrayet
       const newOrder = [...taskList.querySelectorAll("li")].map((li) =>
@@ -108,6 +112,9 @@ function createTask() {
     // gør elementet flytbart med musen
     task.draggable = "true";
 
+    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+    task.style.backgroundColor = randomColor;
+
     // en span indeni li-elementet der refererer til task teksten
     let taskText = document.createElement("span");
     taskText.textContent = userInput;
@@ -132,6 +139,7 @@ function createTask() {
     // markér som fuldført knap
     let markAsDone = document.createElement("input");
     markAsDone.type = "checkbox";
+    markAsDone.classList.add("checkbox");
     markAsDone.dataset.id = taskObj.id;
 
     // event listener til når checkboxens status ændres (checked/unchecked)
@@ -170,7 +178,6 @@ function createTask() {
         //tilføj dragging class for styling + identifikation
         task.classList.add("dragging");
         // tilføj midlrtidig opacity styling
-        task.style.opacity = 0.3;
         // giver browseren et billede af selve tasken, der følger musen under drag. Offset er 0,0
         e.dataTransfer.setDragImage(task, 0, 0);
       }, 0);
@@ -180,7 +187,6 @@ function createTask() {
     task.addEventListener("dragend", () => {
       // fjerne dragging class og resette opacity
       task.classList.remove("dragging");
-      task.style.opacity = 1;
 
       const newOrder = [...taskList.querySelectorAll("li")].map((li) => {
         return tasksArray.find(
@@ -208,7 +214,8 @@ function initSortableList(e) {
 
   // finder det første element i listen, hvor musens Y-position er over halvdelen af elementets højde - hvilket betyder “træk elementet før denne”
   let nextSibling = siblings.find((sibling) => {
-    return e.clientY < sibling.offsetTop + sibling.offsetHeight / 2;
+    const rect = sibling.getBoundingClientRect();
+    return e.clientY < rect.top + rect.height / 2;
   });
 
   // hvis vi fandt elementet, indsætter vi det trukne element før det.
