@@ -22,6 +22,7 @@ h1 {
 @media (max-width: 500px) {
   .container {
     width: 100%;
+    margin: 0;
   }
 }
 
