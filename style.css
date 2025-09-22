@@ -1,65 +1,133 @@
 body {
   background-color: #9ab6cf;
-  font-family: "Courier New", Courier, monospace;
+  color: #5e3a3e;
+  font-family: "Segoe UI", Tahoma, sans-serif;
+}
+
+h1 {
+  text-align: center;
+  grid-area: heading;
 }
 
 .container {
   background-color: #fafffe;
-  width: 50%;
+  width: 500px;
+  min-height: 250px;
   border-radius: 15px;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  margin: 20px auto;
+  padding: 10px;
 }
 
-#task {
-  background-color: #defae1;
-  margin: 5px;
-  border-radius: 15px;
-  height: 50px;
+@media (max-width: 500px) {
+  .container {
+    width: 100%;
+  }
 }
 
-#task li {
-  list-style: none;
-}
-
-.task-text {
+.add-task-container {
+  display: grid;
+  grid-template-columns: 1fr 50px;
+  grid-template-areas: "taskfield taskadd";
   margin-left: 20px;
+  margin-right: 20px;
 }
 
 .add-task-field {
-  margin: 10px;
-  padding: 10px;
+  font-size: 16px;
   border-radius: 15px;
-  font-family: "Courier New", Courier, monospace;
+  border: 1px solid #5e3a3e;
+  padding: 10px;
+  outline: none;
+  grid-area: taskfield;
+}
+
+.missing-input {
+  border-color: #ffb0b0;
+  background-color: #ffb0b0;
+  transition: border-color 0.2s, background-color 0.2s;
 }
 
 .add-task-btn {
   background-color: #8d4ce8;
   color: #fcfef9;
-  padding: 10px 18px;
-  text-align: center;
-  border: none;
-  border-radius: 5px;
+  font-size: 30px;
+  border-radius: 15px;
+  margin: 5px;
+  grid-area: taskadd;
+}
+
+.task-list {
+  list-style: none;
+  padding: 0;
+  margin: 20px 20px 20px 5px;
+}
+
+.task {
+  background-color: #f3f1f4;
+  border-radius: 15px;
+  padding: 10px;
+  margin: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: 50px 1fr 50px;
+  grid-template-areas: "checktask task deletetask";
+  align-items: center;
+
+  transform-origin: top;
+  transition: max-height 0.2s ease, opacity 0.2s ease, margin 0.2s ease,
+    padding 0.2s ease;
+  max-height: 200px; /* skal være lidt højere end din største task */
+  overflow: hidden;
+}
+
+.task.removing {
+  transform: scaleY(0);
+  opacity: 0;
+}
+
+.task:hover {
+  transform: scale(1.02);
+  transition: transform 0.2s ease;
+}
+
+.dragging {
+  background-color: #e1e1e1;
 }
 
 .checkbox {
-  margin: 20px;
+  grid-area: checktask;
+  transform: scale(2);
+}
+
+.task-text {
+  margin-top: 5px;
+  margin-left: 20px;
+  margin-right: 10px;
+  font-size: 20px;
+  overflow-wrap: anywhere;
+}
+
+.finished .task-text {
+  color: #999;
+  text-decoration: line-through;
 }
 
 .delete-btn {
+  font-size: 20px;
   background-color: #e54d41;
-  color: #fcfef9;
-  padding: 10px 18px;
-  text-align: center;
-  border: none;
-  border-radius: 5px;
-  float: right;
-  margin: 20px 20px 0px 20px;
+  border-radius: 15px;
+  grid-area: deletetask;
 }
 
-.finished {
-  opacity: 0.5;
-  background-color: #000000;
+.delete-btn,
+.add-task-btn {
+  width: 50px;
+  height: 50px;
+  line-height: 20px;
+  text-align: center;
+  color: #fcfef9;
+  border: none;
+  cursor: pointer;
 }

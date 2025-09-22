@@ -13,11 +13,10 @@ const taskList = document.querySelector(".task-list");
 //array som bliver fyldt med de objekter, der repræsenterer tasks
 let tasksArray = [];
 
-let colors = ["#F3F1F4"];
-
 function loadTasks() {
   // hent tasks fra JSON-fil og konvertér dem om til data/et objekt
   const savedTasks = JSON.parse(localStorage.getItem("tasks"));
+  addTaskField.classList.remove("missing-input");
   //afslut funktionen hvis arrayet er tomt
   if (!savedTasks) return;
 
@@ -25,18 +24,14 @@ function loadTasks() {
   savedTasks.forEach((taskObj) => {
     if (!taskObj) return;
     let task = document.createElement("li");
-    task.id = "task";
+    task.classList.add("task");
     task.draggable = "true";
-
-    const randomColor = colors[Math.floor(Math.random() * colors.length)];
-    task.style.backgroundColor = randomColor;
 
     let taskText = document.createElement("span");
     taskText.textContent = taskObj.text;
     taskText.classList.add("task-text");
     if (taskObj.done) {
-      taskText.classList.add("finished");
-      taskText.innerHTML = `<s>${taskObj.text}</s>`;
+      task.classList.add("finished");
     } else {
       taskText.classList.add("unfinished");
     }
@@ -49,25 +44,34 @@ function loadTasks() {
 
     markAsDone.addEventListener("change", () => {
       if (markAsDone.checked) {
-        taskText.innerHTML = `<s>${taskObj.text}</s>`;
-        taskText.classList.remove("unfinished");
-        taskText.classList.add("finished");
+        task.classList.add("finished");
         taskObj.done = true;
       } else {
         taskText.innerHTML = taskObj.text;
-        taskText.classList.remove("finished");
-        taskText.classList.add("unfinished");
+        task.classList.remove("finished");
         taskObj.done = false;
       }
       saveTasks();
     });
 
     let deleteBtn = document.createElement("button");
-    deleteBtn.classList.add("delete-btn", "fa", "fa-trash");
+    deleteBtn.classList.add("delete-btn");
+    deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+    // slet-knap event listener
     deleteBtn.addEventListener("click", () => {
-      task.remove();
-      tasksArray = tasksArray.filter((t) => t.id !== taskObj.id);
-      saveTasks();
+      // sæt max-height til elementets aktuelle højde først
+      task.style.maxHeight = task.offsetHeight + "px";
+
+      // trigger transition
+      requestAnimationFrame(() => {
+        task.classList.add("removing");
+
+        setTimeout(() => {
+          task.remove();
+          tasksArray = tasksArray.filter((t) => t.id !== taskObj.id);
+          saveTasks();
+        }, 200); // duration = CSS transition
+      });
     });
 
     task.appendChild(markAsDone);
@@ -101,19 +105,21 @@ function saveTasks() {
   localStorage.setItem("tasks", JSON.stringify(tasksArray));
 }
 
+addTaskField.addEventListener("click", () =>
+  addTaskField.classList.remove("missing-input")
+);
+
 // funktion der står for at lave en task
 function createTask() {
   // gem input i variabel
   let userInput = addTaskField.value;
   if (userInput) {
+    addTaskField.classList.remove("missing-input");
     // task er det overordnede li-element
     let task = document.createElement("li");
-    task.id = "task";
+    task.classList.add("task");
     // gør elementet flytbart med musen
     task.draggable = "true";
-
-    const randomColor = colors[Math.floor(Math.random() * colors.length)];
-    task.style.backgroundColor = randomColor;
 
     // en span indeni li-elementet der refererer til task teksten
     let taskText = document.createElement("span");
@@ -122,18 +128,29 @@ function createTask() {
 
     let taskObj = {
       text: taskText.textContent,
-      done: taskText.classList.contains("finished") ? true : false,
+      done: false,
       id: Date.now(),
     };
 
     // slet knap
     let deleteBtn = document.createElement("button");
     deleteBtn.classList.add("delete-btn");
-    deleteBtn.classList.add("fa", "fa-trash");
+    deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+    // slet-knap event listener
     deleteBtn.addEventListener("click", () => {
-      task.remove();
-      tasksArray = tasksArray.filter((t) => t.id !== taskObj.id); // fjern fra arrayet
-      saveTasks();
+      // sæt max-height til elementets aktuelle højde først
+      task.style.maxHeight = task.offsetHeight + "px";
+
+      // trigger transition
+      requestAnimationFrame(() => {
+        task.classList.add("removing");
+
+        setTimeout(() => {
+          task.remove();
+          tasksArray = tasksArray.filter((t) => t.id !== taskObj.id);
+          saveTasks();
+        }, 200); // duration = CSS transition
+      });
     });
 
     // markér som fuldført knap
@@ -141,24 +158,22 @@ function createTask() {
     markAsDone.type = "checkbox";
     markAsDone.classList.add("checkbox");
     markAsDone.dataset.id = taskObj.id;
+    markAsDone.checked = taskObj.done;
 
     // event listener til når checkboxens status ændres (checked/unchecked)
     markAsDone.addEventListener("change", () => {
       let id = Number(markAsDone.dataset.id);
-      let task = tasksArray.find((t) => t.id === id);
+      let taskObj = tasksArray.find((t) => t.id === id);
       if (markAsDone.checked) {
         // tilføj streg igennem teksten
-        taskText.innerHTML = `<s>${userInput}</s>`;
-        taskText.classList.remove("unfinished");
-        taskText.classList.add("finished");
-        task.done = true;
+        task.classList.add("finished");
+        taskObj.done = true;
         saveTasks();
       } else {
         // fjern streg igennem teksten
         taskText.innerHTML = userInput;
-        taskText.classList.remove("finished");
-        taskText.classList.add("unfinished");
-        task.done = false;
+        task.classList.remove("finished");
+        taskObj.done = false;
         saveTasks();
       }
     });
@@ -200,7 +215,7 @@ function createTask() {
     tasksArray.push(taskObj);
     saveTasks();
   } else {
-    alert("Please input a value");
+    addTaskField.classList.add("missing-input");
   }
 }
 
